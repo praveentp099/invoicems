@@ -1,0 +1,93 @@
+{% extends 'core/base.html' %}
+
+{% block page_title %}Departments{% endblock %}
+
+{% block header_actions %}
+    <a href="{% url 'department_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Create Department
+    </a>
+{% endblock %}
+
+{% block content %}
+<style>
+    .table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        vertical-align: middle;
+        word-wrap: break-word;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+
+    .table td:first-child,
+    .table th:first-child {
+        text-align: center;
+        width: 50px;
+    }
+
+    .table td:last-child,
+    .table th:last-child {
+        text-align: center;
+        width: 120px;
+    }
+
+    .btn-action-group {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .card {
+        overflow-x: auto;
+    }
+</style>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-bordered table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for department in departments %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ department.name }}</td>
+                    <td>{{ department.description|truncatechars:80|default:"-" }}</td>
+                    <td>{{ department.created_at|date:"d M Y" }}</td>
+                    <td>
+                        <div class="btn-action-group">
+                            <a href="{% url 'department_update' department.pk %}" class="btn btn-sm btn-warning" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'department_delete' department.pk %}" class="btn btn-sm btn-danger" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No departments found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

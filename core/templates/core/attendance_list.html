@@ -1,0 +1,417 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block page_title %}Attendance Records{% endblock %}
+
+{% block header_actions %}
+    <a href="{% url 'attendance_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Record Attendance
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <!-- Consolidated Filter Row -->
+        <div class="row mb-3 align-items-end">
+            <div class="col-md-2 mb-2">
+                <label class="form-label small text-muted mb-1">View Type</label>
+                <select class="form-select" id="viewTypeSelect">
+                    <option value="monthly" {% if view_type == 'monthly' %}selected{% endif %}>Monthly View</option>
+                    <option value="yearly" {% if view_type == 'yearly' %}selected{% endif %}>Yearly Employee View</option>
+                </select>
+            </div>
+            
+            {% if view_type == 'monthly' %}
+            <div class="col-md-2 mb-2">
+                <label class="form-label small text-muted mb-1">Month</label>
+                <select class="form-select" id="monthSelect">
+                    <option value="">Select Month</option>
+                    {% for month in months %}
+                    <option value="{{ month|date:'Y-m' }}" {% if selected_month == month|date:'Y-m' %}selected{% endif %}>
+                        {{ month|date:"F Y" }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small text-muted mb-1">Department</label>
+                <select class="form-select" id="departmentSelect">
+                    <option value="">All Departments</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.id }}" {% if selected_dept == dept.id|stringformat:"s" %}selected{% endif %}>
+                        {{ dept.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- Employee Filter for Monthly View -->
+            <div class="col-md-3 mb-2">
+                <label class="form-label small text-muted mb-1">Employee</label>
+                <select class="form-select" id="employeeSelectMonthly">
+                    <option value="">All Employees</option>
+                    {% for emp in employees %}
+                    <option value="{{ emp.id }}" {% if selected_employee_monthly == emp.id %}selected{% endif %}>
+                        {{ emp.name }} ({{ emp.department.name|default:"-" }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% else %}
+            <div class="col-md-3 mb-2">
+                <label class="form-label small text-muted mb-1">Employee</label>
+                <select class="form-select" id="employeeSelect">
+                    <option value="">Select Employee</option>
+                    {% for emp in employees %}
+                    <option value="{{ emp.id }}" {% if selected_employee == emp.id %}selected{% endif %}>
+                        {{ emp.name }} ({{ emp.department.name|default:"-" }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small text-muted mb-1">Year</label>
+                <input type="number" class="form-control" id="yearInput" 
+                       min="2000" max="{{ current_year }}" value="{{ selected_year }}">
+            </div>
+            {% endif %}
+            
+            <div class="col-md-2 mb-2 text-end">
+                <button class="btn btn-outline-secondary" onclick="resetFilters()">
+                    <i class="fas fa-sync"></i> Reset
+                </button>
+            </div>
+        </div>
+        
+        <!-- Yearly View -->
+        {% if view_type == 'yearly' and selected_employee %}
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user me-2"></i>
+                    Yearly Attendance Summary for 
+                    {% for emp in employees %}
+                        {% if emp.id == selected_employee %}
+                            <strong>{{ emp.name }}</strong> ({{ selected_year }})
+                        {% endif %}
+                    {% endfor %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">Month</th>
+                                <th class="text-center">Days</th>
+                                <th class="text-center">Present</th>
+                                <th class="text-center">Absent</th>
+                                <th class="text-center">Late</th>
+                                <th class="text-center">Attendance %</th>
+                                <th class="text-center">Total Hours</th>
+                                <th class="text-center">Overtime</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for month_data in attendances %}
+                            <tr>
+                                <td class="text-center">{{ month_data.month }}</td>
+                                <td class="text-center">{{ month_data.days }}</td>
+                                <td class="text-center text-success">{{ month_data.present }}</td>
+                                <td class="text-center text-danger">{{ month_data.absent }}</td>
+                                <td class="text-center text-warning">{{ month_data.late }}</td>
+                                <td class="text-center">
+                                    {% if month_data.days > 0 %}
+                                        {% widthratio month_data.present month_data.days 100 as percentage %}
+                                        <span class="fw-bold {% if percentage >= 90 %}text-success{% elif percentage >= 75 %}text-primary{% else %}text-danger{% endif %}">
+                                            {{ percentage|floatformat:1 }}%
+                                        </span>
+                                    {% else %}
+                                        <span class="fw-bold">0.0%</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">{{ month_data.total_hours|floatformat:1 }}</td>
+                                <td class="text-center">{{ month_data.overtime_hours|floatformat:1 }}</td>
+                                <td class="text-center text-nowrap">
+                                    <a href="?view_type=monthly&employee={{ selected_employee }}&month={{ month_data.start_date|date:'Y-m' }}"
+                                       class="btn btn-sm btn-primary" title="View Monthly Details">
+                                        <i class="fas fa-calendar-alt me-1"></i> Details
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center py-4">
+                                    <i class="fas fa-info-circle me-2"></i>No attendance data available
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Yearly Summary Cards -->
+                <div class="row mt-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-primary">
+                            <div class="card-body text-center">
+                                <h6 class="card-title text-muted">Total Present</h6>
+                                <h3 class="text-primary">{{ yearly_summary.total_present }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <h6 class="card-title text-muted">Avg. Attendance</h6>
+                                <h3 class="text-success">{{ yearly_summary.avg_attendance|floatformat:1 }}%</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <h6 class="card-title text-muted">Total Hours</h6>
+                                <h3 class="text-info">{{ yearly_summary.total_hours|floatformat:1 }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <h6 class="card-title text-muted">Total Overtime</h6>
+                                <h3 class="text-warning">{{ yearly_summary.total_overtime|floatformat:1 }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Monthly View -->
+        {% else %}
+        <div class="card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calendar me-2"></i>
+                    Monthly Attendance Records
+                    {% if selected_month %}
+                    - <strong>{{ selected_month|date:"F Y" }}</strong>
+                    {% endif %}
+                </h5>
+                <span class="badge bg-primary">
+                    {{ page_obj.paginator.count }} record{{ page_obj.paginator.count|pluralize }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <!-- Improved table with fixed column widths -->
+                    <table class="table table-hover align-middle" style="table-layout: fixed;">
+                        <colgroup>
+                            <col style="width: 12%">
+                            <col style="width: 22%">
+                            <col style="width: 18%">
+                            <col style="width: 12%">
+                            <col style="width: 12%">
+                            <col style="width: 12%">
+                            <col style="width: 12%">
+                        </colgroup>
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Employee</th>
+                                <th>Department</th>
+                                <th>Status</th>
+                                <th class="text-end">Hours</th>
+                                <th class="text-end">Overtime</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attendance in page_obj %}
+                            <tr>
+                                <td class="text-nowrap">{{ attendance.date|date:"d M Y" }}</td>
+                                <td>{{ attendance.employee.name }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        {{ attendance.employee.department.name|default:"-" }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if attendance.status == 'present' %}bg-success
+                                        {% elif attendance.status == 'absent' %}bg-danger
+                                        {% elif attendance.status == 'late' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ attendance.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="text-end">{{ attendance.hours_worked|floatformat:1 }} hrs</td>
+                                <td class="text-end">{{ attendance.overtime_hours|floatformat:1 }} hrs</td>
+                                <td class="text-center text-nowrap">
+                                    {% if attendance.id %}
+                                        <a href="{% url 'attendance_update' attendance.id %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'attendance_delete' attendance.id %}" class="btn btn-sm btn-outline-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    No attendance records found for selected filters
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Improved Pagination with better visuals -->
+                {% if page_obj.paginator.num_pages > 1 %}
+                <nav aria-label="Attendance pagination">
+                    <ul class="pagination justify-content-center mt-4">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1" aria-label="First">
+                                <span aria-hidden="true"><i class="fas fa-angle-double-left"></i></span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                <span aria-hidden="true"><i class="fas fa-angle-left"></i></span>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                <span aria-hidden="true"><i class="fas fa-angle-right"></i></span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                                <span aria-hidden="true"><i class="fas fa-angle-double-right"></i></span>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                    <p class="text-center text-muted small mt-2">
+                        Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} records
+                    </p>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Filter elements
+    const viewTypeSelect = document.getElementById('viewTypeSelect');
+    const monthSelect = document.getElementById('monthSelect');
+    const departmentSelect = document.getElementById('departmentSelect');
+    const employeeSelect = document.getElementById('employeeSelect');
+    const employeeSelectMonthly = document.getElementById('employeeSelectMonthly');
+    const yearInput = document.getElementById('yearInput');
+    
+    // Update URL with selected filters
+    function updateFilters() {
+        const params = new URLSearchParams(window.location.search);
+        const viewType = viewTypeSelect.value;
+        
+        params.set('view_type', viewType);
+        params.delete('page');
+        
+        if (viewType === 'monthly') {
+            if (monthSelect) params.set('month', monthSelect.value);
+            if (departmentSelect) params.set('department', departmentSelect.value);
+            if (employeeSelectMonthly) params.set('employee_monthly', employeeSelectMonthly.value);
+            params.delete('employee');
+            params.delete('year');
+        } else {
+            if (employeeSelect) params.set('employee', employeeSelect.value);
+            if (yearInput) params.set('year', yearInput.value);
+            params.delete('month');
+            params.delete('department');
+            params.delete('employee_monthly');
+        }
+        
+        window.location.search = params.toString();
+    }
+    
+    // Reset all filters
+    function resetFilters() {
+        const params = new URLSearchParams();
+        params.set('view_type', 'monthly');
+        window.location.search = params.toString();
+    }
+    
+    // Event listeners
+    viewTypeSelect.addEventListener('change', updateFilters);
+    if (monthSelect) monthSelect.addEventListener('change', updateFilters);
+    if (departmentSelect) departmentSelect.addEventListener('change', updateFilters);
+    if (employeeSelect) employeeSelect.addEventListener('change', updateFilters);
+    if (employeeSelectMonthly) employeeSelectMonthly.addEventListener('change', updateFilters);
+    if (yearInput) {
+        yearInput.addEventListener('change', updateFilters);
+        yearInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') updateFilters();
+        });
+    }
+</script>
+
+<style>
+    .table {
+        font-size: 0.9rem;
+    }
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background-color: #f8f9fa;
+    }
+    .table td {
+        vertical-align: middle;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .badge {
+        padding: 0.5em 0.75em;
+        font-weight: 500;
+    }
+    .pagination .page-item {
+        margin: 0 3px;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .pagination .page-link {
+        border-radius: 4px;
+        padding: 0.5rem 0.75rem;
+    }
+    .card-title {
+        font-weight: 600;
+    }
+</style>
+{% endblock %}

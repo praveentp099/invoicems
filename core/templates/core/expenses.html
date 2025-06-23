@@ -1,0 +1,37 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Expenses{% endblock %}
+{% block page_title %}Expense Tracking{% endblock %}
+
+{% block content %}
+<div class="card">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Vendor</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Amount (AED)</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in "12345" %}
+            <tr>
+                <td>Jun {{ forloop.counter }}, 2025</td>
+                <td>Vendor {{ forloop.counter }}</td>
+                <td>{% cycle 'Office Supplies' 'Travel' 'Marketing' %}</td>
+                <td>Expense description {{ forloop.counter }}</td>
+                <td>{{ forloop.counter|add:1 }}50.00</td>
+                <td>
+                    <span class="status-badge status-{% cycle 'paid' 'unpaid' %}">
+                        {% cycle 'Paid' 'Unpaid' %}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,525 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block extra_css %}
+<style>
+    /* Watermark styling */
+    .watermark {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none;
+        z-index: -1;
+        opacity: 0.15;
+    }
+    
+    .watermark img {
+        width: 600px;
+        height: auto;
+        opacity: 0.3;
+    }
+    
+    /* Header styling */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .actions {
+        display: flex;
+        gap: 15px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+    
+    .btn-print {
+        background: #1e3c72;
+        color: white;
+    }
+    
+    .btn-download {
+        background: #4caf50;
+        color: white;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Company header - matches PDF structure */
+    .company-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #1e3c72;
+        padding-bottom: 15px;
+    }
+    
+    .company-info {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .company-logo-container {
+        width: 100px;
+        height: 100px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .company-logo {
+        max-height: 90px;
+        max-width: 90px;
+        object-fit: contain;
+    }
+    
+    .company-text {
+        flex: 1;
+    }
+    
+    .company-name {
+        font-size: 24px;
+        font-weight: bold;
+        color: #1e3c72;
+        margin-bottom: 5px;
+    }
+    
+    .company-name-line2 {
+        font-size: 20px;
+        font-weight: bold;
+        color: #1e3c72;
+        margin-bottom: 8px;
+    }
+    
+    .company-details {
+        font-size: 14px;
+        line-height: 1.5;
+        color: #333;
+    }
+    
+    .quote-details {
+        text-align: right;
+        font-size: 14px;
+    }
+    
+    .quote-title {
+        font-size: 28px;
+        font-weight: bold;
+        color: #1e3c72;
+        margin-bottom: 10px;
+    }
+    
+    /* Bill to section */
+    .bill-to {
+        margin-bottom: 25px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-left: 3px solid #1e3c72;
+    }
+    
+    .bill-to h3 {
+        color: #1e3c72;
+        margin-bottom: 10px;
+        font-size: 18px;
+    }
+    
+    .bill-to p {
+        margin: 5px 0;
+        font-size: 15px;
+    }
+    
+    .project-details {
+        background: #e3f2fd;
+        padding: 12px 15px;
+        margin-bottom: 20px;
+        font-weight: bold;
+        border-radius: 4px;
+    }
+    
+    /* Quote table with borders */
+    .quote-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0 30px;
+        font-size: 14px;
+        border: 1px solid #1e3c72;
+    }
+    
+    .quote-table th,
+    .quote-table td {
+        border: 1px solid #1e3c72;
+        padding: 10px;
+    }
+    
+    .quote-table th {
+        background: #1e3c72;
+        color: white;
+        text-align: left;
+        font-weight: 600;
+    }
+    
+    .quote-table tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+    
+    .text-right {
+        text-align: right;
+    }
+    
+    .text-center {
+        text-align: center;
+    }
+    
+    .amount-section {
+        margin-top: 30px;
+        text-align: right;
+        font-size: 16px;
+    }
+    
+    .amount-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 8px;
+    }
+    
+    .amount-label {
+        width: 150px;
+        font-weight: bold;
+    }
+    
+    .amount-value {
+        width: 150px;
+        text-align: right;
+        padding-left: 10px;
+    }
+    
+    .total-amount {
+        font-weight: bold;
+        font-size: 18px;
+        color: #1e3c72;
+        border-top: 2px solid #1e3c72;
+        padding-top: 8px;
+    }
+    
+    /* Notes section */
+    .notes-section {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px dashed #ccc;
+    }
+    
+    .notes-section h4 {
+        color: #1e3c72;
+        margin-bottom: 10px;
+        font-size: 18px;
+    }
+    
+    .notes-content {
+        line-height: 1.6;
+        font-size: 14px;
+    }
+    
+    .terms-section {
+        margin-top: 25px;
+    }
+    
+    .terms-section h4 {
+        color: #1e3c72;
+        margin-bottom: 10px;
+        font-size: 18px;
+    }
+    
+    .terms-content {
+        line-height: 1.6;
+        font-size: 14px;
+    }
+    
+    .terms-content ul {
+        padding-left: 20px;
+        margin: 10px 0;
+    }
+    
+    .terms-content li {
+        margin-bottom: 5px;
+    }
+    
+    /* Signature section */
+    .signature-section {
+        margin-top: 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding-top: 20px;
+        border-top: 1px solid #ccc;
+    }
+    
+    .signature-box, .seal-box {
+        text-align: center;
+        width: 200px;
+    }
+    
+    .signature-box img, .seal-box img {
+        height: 80px;
+        margin-bottom: 10px;
+    }
+    
+    .signature-box p, .seal-box p {
+        padding-top: 5px;
+        border-top: 1px solid #1e3c72;
+        font-weight: bold;
+        color: #1e3c72;
+        font-size: 14px;
+    }
+    
+    .contact-info {
+        text-align: right;
+        font-size: 14px;
+        margin-top: 10px;
+    }
+    
+    /* Amount in words styling */
+    .amount-in-words {
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 1px dashed #ccc;
+        font-style: italic;
+        text-align: left;
+        width: 100%;
+    }
+    
+    .amount-in-words-label {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    /* Print-specific styles */
+    @media print {
+        .watermark {
+            opacity: 0.1;
+        }
+        
+        .header {
+            display: none;
+        }
+        
+        body {
+            background: white;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .container {
+            box-shadow: none;
+            padding: 15px;
+            margin: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Watermark -->
+<div class="watermark">
+    <img src="{% static 'core/images/watermark.png' %}" alt="Watermark">
+</div>
+
+<div class="header">
+    <h2>Quote #{{ quote.quote_number }}</h2>
+    <div class="actions">
+        <button class="btn btn-print" onclick="window.print()">
+            <i class="fas fa-print"></i> Print
+        </button>
+        <button class="btn btn-download" onclick="downloadPDF()">
+            <i class="fas fa-download"></i> Download PDF
+        </button>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Company header - matches PDF structure -->
+    <div class="company-header">
+        <div class="company-info">
+            <div class="company-logo-container">
+                <img src="{% static 'core/images/Blue En.png' %}" alt="Company Logo" class="company-logo">
+            </div>
+            <div class="company-text">
+                
+        </div>
+        
+        <div class="quote-details">
+            <div class="quote-title">QUOTE</div>
+            <div><strong>NO.</strong> {{ quote.quote_number }}</div>
+            <div><strong>DATE:</strong> {{ quote.quote_date }}</div>
+            <div class="company-name">UNIQUE FORCE</div>
+                <div class="company-name-line2">GENERAL CONTRACTING</div>
+                <div class="company-details">
+                    <div>TRN: 100277183800003</div>
+                    <div>056 473 0101 | 050 819 6223</div>
+                    <div>u.forcegcc@gmail.com</div>
+                    <div>www.theuforce.com</div>
+                    <div>Abu Dhabi, United Arab Emirates</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bill to section -->
+    <div class="bill-to">
+        <h3>BILL TO</h3>
+        <p><strong>ATTN:</strong> {{ quote.customer.display_name }}</p>
+        <p><strong>M/S:</strong> {{ quote.customer.company_name }}</p>
+        <p><strong>PO BOX:</strong> {{ quote.customer.po_box|default:"-" }}</p>
+        <p><strong>TEL:</strong> {{ quote.customer.work_phone }}</p>
+        <p><strong>MOB:</strong> {{ quote.customer.mobile|default:"" }}</p>
+        <p>{{ quote.customer.city|default:"Abu Dhabi" }}, UAE.</p>
+    </div>
+
+    
+    
+    <div class="project-details">
+        <strong>PROJECT:</strong> {{ quote.subject|default:"-" }}
+    </div>
+    
+    <h3 style="color: #1e3c72; margin-bottom: 15px;">SCOPE OF WORKS</h3>
+    
+    <table class="quote-table">
+        <thead>
+            <tr>
+                <th width="5%">Sl.No</th>
+                <th width="55%">Description</th>
+                <th width="8%">Qty</th>
+                <th width="8%">Unit</th>
+                <th width="12%">Unit Price</th>
+                <th width="12%">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in quote.items.all %}
+            <tr>
+                <td class="text-center">{{ forloop.counter }}</td>
+                <td>{{ item.description }}</td>
+                <td class="text-center">{{ item.quantity }}</td>
+                <td class="text-center">{{ item.get_unit_display }}</td>
+                <td class="text-right">AED {{ item.rate }}</td>
+                <td class="text-right">AED {{ item.amount|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <!-- Amount section -->
+    <div class="amount-section">
+        <div class="amount-row">
+            <div class="amount-label">SUB TOTAL</div>
+            <div class="amount-value">AED {{ quote.subtotal|floatformat:2 }}</div>
+        </div>
+        <div class="amount-row">
+            <div class="amount-label">VAT 5%</div>
+            <div class="amount-value">AED {{ quote.tax_amount|floatformat:2 }}</div>
+        </div>
+        <div class="amount-row total-amount">
+            <div class="amount-label">TOTAL</div>
+            <div class="amount-value">AED {{ quote.total_amount|floatformat:2 }}</div>
+        </div>
+        
+        <!-- Amount in words section -->
+        <div class="amount-in-words">
+            <div class="amount-in-words-label">Amount in Words:</div>
+            <div>{{ quote.total_amount|amount_in_words|title }} Only</div>
+        </div>
+    </div>
+    
+    <!-- Notes section -->
+    <div class="notes-section">
+        <h4>NOTES</h4>
+        <div class="notes-content">
+            <p>This quotation includes all materials and labor required for the specified scope of work. Any additional work beyond this scope will be billed separately. Prices are valid for 30 days from the date of this quotation.</p>
+        </div>
+    </div>
+    
+    <!-- Terms section -->
+    <div class="terms-section">
+        <h4>TERMS & CONDITIONS</h4>
+        <div class="terms-content">
+            <ul>
+                <li><strong>Payment terms:</strong> 50% Advance payment, 40% Progress payment, 10% After Completion</li>
+                <li><strong>Quotation Validity:</strong> One month</li>
+                <li>Our scope of work includes only the activities specifically stated, and any additional work outside the scope of this job will be charged separately.</li>
+                <li>Unique force reserves the right to stop the work if the client does not honor payment obligations as per the agreed terms.</li>
+                <li>Measurement: QC reports will record the physical measurements for billing purpose.</li>
+                <li>In case of any variation between your specifications, terms and conditions, and our Quotation/correspondence, the latter shall prevail.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Signature section -->
+    <div class="signature-section">
+        <div class="signature-box">
+            <img src="{% static 'core/images/sign.png' %}" alt="Authorized Signature">
+            <p>Authorized Signature</p>
+        </div>
+        
+        <div class="seal-box">
+            <img src="{% static 'core/images/seal.png' %}" alt="Company Seal">
+            <p>Company Seal</p>
+        </div>
+    </div>
+    
+    <div class="contact-info">
+        <p><strong>Best Regards,</strong></p>
+        <p><strong>Muhammad Ali</strong> | Project Manager</p>
+        <p>Contact No: +971 56 473 0101 | Email: u.forcegcc@gmail.com</p>
+    </div>
+</div>
+
+<script>
+    function downloadPDF() {
+        // In a real implementation, this would generate/download the PDF
+        alert("PDF download functionality would be implemented here. In a real application, this would generate and download the PDF file.");
+        
+        // This is a simulation of the download process
+        const header = document.querySelector('.header');
+        const watermark = document.querySelector('.watermark');
+        
+        // Hide buttons temporarily
+        header.style.display = 'none';
+        
+        // Increase watermark opacity for PDF simulation
+        watermark.style.opacity = '0.2';
+        
+        // Print simulation (would be replaced with actual PDF generation)
+        window.print();
+        
+        // Show header again after a delay
+        setTimeout(() => {
+            header.style.display = 'flex';
+            watermark.style.opacity = '0.15';
+        }, 1000);
+    }
+</script>
+{% endblock %}

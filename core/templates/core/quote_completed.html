@@ -1,0 +1,9 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h2>Completed Quotations</h2>
+<ul>
+    {% for quote in quotes %}
+        <li>{{ quote.quote_number }} - {{ quote.customer.name }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

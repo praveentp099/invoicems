@@ -1,0 +1,37 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Time Tracking{% endblock %}
+{% block page_title %}Time Tracking{% endblock %}
+
+{% block content %}
+<div class="card">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Project</th>
+                <th>Task</th>
+                <th>Team Member</th>
+                <th>Hours</th>
+                <th>Billable</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in "12345" %}
+            <tr>
+                <td>Jun {{ forloop.counter }}, 2025</td>
+                <td>Project {{ forloop.counter }}</td>
+                <td>Task {{ forloop.counter }}</td>
+                <td>Member {{ forloop.counter }}</td>
+                <td>{{ forloop.counter|add:2 }}.5</td>
+                <td>
+                    <span class="status-badge status-{% cycle 'yes' 'no' %}">
+                        {% cycle 'Yes' 'No' %}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

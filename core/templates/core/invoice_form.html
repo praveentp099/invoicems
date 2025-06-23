@@ -1,0 +1,181 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block header_actions %}
+<button type="submit" form="invoice-form" class="btn btn-primary">
+    <i class="fas fa-save"></i> Save Invoice
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <form id="invoice-form" method="post">
+        {% csrf_token %}
+        
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label>Invoice Number</label>
+                {{ form.invoice_number }}
+            </div>
+            <div class="form-group col-md-6">
+                <label>Customer</label>
+                {{ form.customer }}
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group col-md-3">
+                <label>Invoice Date</label>
+                {{ form.invoice_date }}
+            </div>
+            <div class="form-group col-md-3">
+                <label>Due Date</label>
+                {{ form.due_date }}
+            </div>
+            <div class="form-group col-md-3">
+                <label>Status</label>
+                {{ form.status }}
+            </div>
+            <div class="form-group col-md-3">
+                <label>Total Amount</label>
+                <input type="text" class="form-control" value="{{ form.instance.total_amount|default:'0.00' }}" disabled>
+            </div>
+        </div>
+        
+        <h3>Items</h3>
+        <table class="item-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Quantity</th>
+                    <th>Unit Price (AED)</th>
+                    <th>Tax (%)</th>
+                    <th>Total (AED)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="item-rows">
+                {{ formset.management_form }}
+                {% for item_form in formset %}
+                <tr class="item-row">
+                    {{ item_form.id }}
+                    <td>{{ item_form.description }}</td>
+                    <td>{{ item_form.quantity }}</td>
+                    <td>{{ item_form.unit_price }}</td>
+                    <td>{{ item_form.tax }}</td>
+                    <td class="amount">
+                        {% if item_form.instance.pk %}
+                            {{ item_form.instance.total_price|floatformat:2 }}
+                        {% else %}
+                            0.00
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ item_form.DELETE }}
+                        <button type="button" class="btn-icon remove-row"><i class="fas fa-times"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="button" id="add-item" class="btn btn-sm btn-secondary">
+            <i class="fas fa-plus"></i> Add Item
+        </button>
+        
+        <div class="form-row mt-4">
+            <div class="form-group col-md-6">
+                <label>Notes</label>
+                {{ form.notes }}
+            </div>
+            <div class="form-group col-md-6">
+                <label>Terms & Conditions</label>
+                {{ form.terms }}
+            </div>
+        </div>
+        
+        <div class="form-footer">
+            <button type="submit" class="btn btn-primary">Save Invoice</button>
+            <a href="{% url 'invoice_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add new item row
+    const addItemButton = document.getElementById('add-item');
+    const tableBody = document.getElementById('item-rows');
+    const totalForms = document.getElementById('id_items-TOTAL_FORMS');
+    
+    if (addItemButton) {
+        addItemButton.addEventListener('click', function() {
+            const formCount = parseInt(totalForms.value);
+            const newRow = document.querySelector('.item-row').cloneNode(true);
+            
+            // Update form index
+            const regex = new RegExp('items-(\\d+)', 'g');
+            newRow.innerHTML = newRow.innerHTML.replace(regex, `items-${formCount}`);
+            
+            // Clear values
+            const inputs = newRow.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                if (input.type !== 'hidden') {
+                    input.value = '';
+                }
+            });
+            
+            // Reset delete checkbox
+            const deleteCheckbox = newRow.querySelector('input[type="checkbox"]');
+            if (deleteCheckbox) {
+                deleteCheckbox.checked = false;
+            }
+            
+            // Add remove functionality
+            const removeBtn = newRow.querySelector('.remove-row');
+            removeBtn.addEventListener('click', function() {
+                newRow.remove();
+            });
+            
+            tableBody.appendChild(newRow);
+            totalForms.value = formCount + 1;
+        });
+    }
+    
+    // Remove row functionality
+    document.querySelectorAll('.remove-row').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.closest('.item-row');
+            const deleteCheckbox = row.querySelector('input[type="checkbox"]');
+            
+            if (deleteCheckbox) {
+                deleteCheckbox.checked = true;
+                row.style.display = 'none';
+            } else {
+                row.remove();
+            }
+        });
+    });
+    
+    // Calculate totals when values change
+    document.querySelectorAll('#item-rows input').forEach(input => {
+        input.addEventListener('change', calculateTotals);
+    });
+});
+
+function calculateTotals() {
+    document.querySelectorAll('.item-row').forEach(row => {
+        const quantity = parseFloat(row.querySelector('input[name*="quantity"]').value) || 0;
+        const unitPrice = parseFloat(row.querySelector('input[name*="unit_price"]').value) || 0;
+        const tax = parseFloat(row.querySelector('input[name*="tax"]').value) || 0;
+        
+        const total = quantity * unitPrice * (1 + tax/100);
+        row.querySelector('.amount').textContent = total.toFixed(2);
+    });
+}
+</script>
+{% endblock %}

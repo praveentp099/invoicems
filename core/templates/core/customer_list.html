@@ -1,0 +1,75 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Customers{% endblock %}
+{% block page_title %}Customer List{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'customer_create' %}" class="btn btn-primary">
+    <i class="fas fa-plus"></i> New Customer
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Display messages -->
+{% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="card">
+    {% if customers %}
+    <div class="table-responsive">
+        <table class="table data-table">
+            <thead>
+                <tr>
+                    <th>Display Name</th>
+                    <th>Company</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                <tr>
+                    <td>{{ customer.display_name }}</td>
+                    <td>{{ customer.company_name }}</td>
+                    <td>{{ customer.email }}</td>
+                    <td>{{ customer.mobile|default:customer.work_phone|default:"-" }}</td>
+                    <td>{{ customer.get_type_display }}</td>
+                    <td>
+                        <span class="badge badge-{% if customer.status == 'active' %}success{% else %}secondary{% endif %}">
+                            {{ customer.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="actions">
+                        <a href="{% url 'customer_edit' customer.id %}" class="btn-icon" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'customer_delete' customer.id %}" class="btn-icon text-danger" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No customers found. 
+            <a href="{% url 'customer_create' %}">Create your first customer</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

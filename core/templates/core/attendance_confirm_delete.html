@@ -1,0 +1,112 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block page_title %}Confirm Attendance Deletion{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-danger mt-5">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Confirm Attendance Deletion
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <img src="{% static 'img/delete-warning.svg' %}" alt="Warning" class="img-fluid" style="max-height: 150px;">
+                    </div>
+                    
+                    <h5 class="text-center mb-4">
+        Are you sure you want to delete this attendance record?
+    </h5>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-5 fw-bold text-muted">Employee:</div>
+                <div class="col-7">{{ object.employee.name }}</div>
+                
+                <div class="col-5 fw-bold text-muted">Date:</div>
+                <div class="col-7">{{ object.date|date:"d M Y" }}</div>
+                
+                <div class="col-5 fw-bold text-muted">Status:</div>
+                <div class="col-7">
+                    <span class="badge 
+                        {% if object.status == 'present' %}bg-success
+                        {% elif object.status == 'absent' %}bg-danger
+                        {% elif object.status == 'late' %}bg-warning
+                        {% else %}bg-secondary{% endif %}">
+                        {{ object.get_status_display }}
+                    </span>
+                </div>
+                
+                <div class="col-5 fw-bold text-muted">Hours Worked:</div>
+                <div class="col-7">{{ object.hours_worked|floatformat:1 }} hrs</div>
+                
+                <div class="col-5 fw-bold text-muted">Overtime:</div>
+                <div class="col-7">{{ object.overtime_hours|floatformat:1 }} hrs</div>
+            </div>
+        </div>
+    </div>
+    
+    <p class="text-center text-danger mb-4">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        This action cannot be undone. All data related to this record will be permanently deleted.
+    </p>
+    
+    <form method="POST" class="d-flex justify-content-center gap-3">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-lg px-4">
+            <i class="fas fa-trash me-2"></i>Confirm Delete
+        </button>
+        <a href="{% url 'attendance_list' %}" class="btn btn-secondary btn-lg px-4">
+            <i class="fas fa-times me-2"></i>Cancel
+        </a>
+    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .card {
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+    .btn {
+        border-radius: 6px;
+        min-width: 180px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    .btn-danger:hover {
+        background-color: #bb2d3b;
+        border-color: #b02a37;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    .btn-secondary:hover {
+        background-color: #5c636a;
+        border-color: #565e64;
+    }
+</style>
+{% endblock %}

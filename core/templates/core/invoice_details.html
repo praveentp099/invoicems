@@ -1,0 +1,98 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Invoice #{{ invoice.invoice_number }}{% endblock %}
+{% block page_title %}Invoice #{{ invoice.invoice_number }}{% endblock %}
+
+{% block header_actions %}
+<div class="btn-group">
+    <a href="{% url 'generate_pdf' pk=invoice.pk %}" class="btn btn-primary">
+        <i class="fas fa-download"></i> Download PDF
+    </a>
+    
+    {% if invoice.status != 'paid' %}
+    <form method="post" action="{% url 'mark_invoice_paid' pk=invoice.pk %}" class="ml-2">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">
+            <i class="fas fa-check-circle"></i> Mark as Paid
+        </button>
+    </form>
+    {% endif %}
+    
+    <a href="{% url 'invoice_edit' pk=invoice.pk %}" class="btn btn-secondary ml-2">
+        <i class="fas fa-edit"></i> Edit
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-6">
+                <strong>Customer:</strong> {{ invoice.customer.display_name }}
+            </div>
+            <div class="col-md-6 text-right">
+                <strong>Status:</strong>
+                <span class="status-badge status-{{ invoice.status }}">
+                    {{ invoice.get_status_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <strong>Invoice Date:</strong> {{ invoice.invoice_date|date:"M d, Y" }}<br>
+                <strong>Due Date:</strong> {{ invoice.due_date|date:"M d, Y" }}
+            </div>
+            <div class="col-md-6 text-right">
+                <strong>Invoice Number:</strong> {{ invoice.invoice_number }}<br>
+                <strong>Total Amount:</strong> AED {{ invoice.total_amount|floatformat:2 }}
+            </div>
+        </div>
+        
+        <table class="table table-bordered">
+            <thead class="thead-light">
+                <tr>
+                    <th>Description</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Tax (%)</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.items.all %}
+                <tr>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>AED {{ item.unit_price|floatformat:2 }}</td>
+                    <td>{{ item.tax|floatformat:2 }}%</td>
+                    <td>AED {{ item.total_price|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+                <tr class="table-active">
+                    <td colspan="4" class="text-right"><strong>Total:</strong></td>
+                    <td><strong>AED {{ invoice.total_amount|floatformat:2 }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        {% if invoice.notes %}
+        <div class="mt-4">
+            <h5>Notes</h5>
+            <p>{{ invoice.notes }}</p>
+        </div>
+        {% endif %}
+        
+        {% if invoice.terms %}
+        <div class="mt-4">
+            <h5>Terms & Conditions</h5>
+            <p>{{ invoice.terms }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

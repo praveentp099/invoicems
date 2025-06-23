@@ -1,0 +1,37 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Payments{% endblock %}
+{% block page_title %}Payments Received{% endblock %}
+
+{% block content %}
+<div class="card">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Payment #</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Invoice</th>
+                <th>Amount (AED)</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in "12345" %}
+            <tr>
+                <td>PAY-2025-00{{ forloop.counter }}</td>
+                <td>Jun {{ forloop.counter }}, 2025</td>
+                <td>Customer {{ forloop.counter }}</td>
+                <td>INV-2025-00{{ forloop.counter }}</td>
+                <td>{{ forloop.counter|add:10 }}00.00</td>
+                <td>
+                    <span class="status-badge status-{% cycle 'received' 'pending' %}">
+                        {% cycle 'Received' 'Pending' %}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

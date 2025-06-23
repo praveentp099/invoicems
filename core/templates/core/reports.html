@@ -1,0 +1,108 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Reports{% endblock %}
+{% block page_title %}Business Reports{% endblock %}
+
+{% block content %}
+<div class="reports-container">
+    <div class="report-card">
+        <div class="report-icon">
+            <i class="fas fa-file-invoice-dollar"></i>
+        </div>
+        <h3>Sales Report</h3>
+        <p>View detailed sales analysis and trends</p>
+        <a href="#" class="btn btn-secondary">Generate Report</a>
+    </div>
+    
+    <div class="report-card">
+        <div class="report-icon">
+            <i class="fas fa-money-bill-wave"></i>
+        </div>
+        <h3>Expense Report</h3>
+        <p>Track and analyze business expenses</p>
+        <a href="#" class="btn btn-secondary">Generate Report</a>
+    </div>
+    
+    <div class="report-card">
+        <div class="report-icon">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <h3>Profit & Loss</h3>
+        <p>View your business profitability</p>
+        <a href="#" class="btn btn-secondary">Generate Report</a>
+    </div>
+    
+    <div class="report-card">
+        <div class="report-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <h3>Customer Report</h3>
+        <p>Analyze customer behavior and value</p>
+        <a href="#" class="btn btn-secondary">Generate Report</a>
+    </div>
+    
+    <div class="report-card">
+        <div class="report-icon">
+            <i class="fas fa-tasks"></i>
+        </div>
+        <h3>Project Report</h3>
+        <p>Track project progress and profitability</p>
+        <a href="#" class="btn btn-secondary">Generate Report</a>
+    </div>
+    
+    <div class="report-card">
+        <div class="report-icon">
+            <i class="fas fa-clock"></i>
+        </div>
+        <h3>Time Tracking Report</h3>
+        <p>Analyze team time utilization</p>
+        <a href="#" class="btn btn-secondary">Generate Report</a>
+    </div>
+</div>
+
+<style>
+.reports-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.report-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.report-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.report-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #f0f7ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 28px;
+    color: #4361ee;
+}
+
+.report-card h3 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.report-card p {
+    color: #7f8c8d;
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}

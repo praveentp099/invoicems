@@ -1,0 +1,221 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UForce {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'core/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="sidebar">
+        {% load static %}
+        <a href="{% url 'dashboard' %}" style="display: flex; justify-content: center; padding: 20px;">
+            <img src="{% static 'core/images/White En.png' %}" alt="UForce Logo" style="height: 25px; object-fit: contain;">
+        </a>
+        <ul>
+            <!-- Home -->
+            <li class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <a href="{% url 'dashboard' %}"><i class="fas fa-home"></i> <span>Home</span></a>
+            </li>
+            
+            <!-- Customers Dropdown -->
+            <li class="dropdown {% if 'customer' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="#"><i class="fas fa-users"></i><span class="menu-text">Customers</span><i class="fas fa-chevron-down"></i></a>
+                <ul class="dropdown-menu">
+                    <li class="{% if request.resolver_match.url_name == 'customer_create' %}active{% endif %}">
+                        <a href="{% url 'customer_create' %}">Create Customer</a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'customer_list' %}active{% endif %}">
+                        <a href="{% url 'customer_list' %}">Saved Customers</a>
+                    </li>
+                </ul>
+            </li>
+            
+            <!-- Quotes Dropdown -->
+            <li class="dropdown {% if 'quote' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="#"><i class="fas fa-file-alt"></i> <span>Quotes</span> <i class="fas fa-chevron-down"></i></a>
+                <ul class="dropdown-menu">
+                    <li class="{% if request.resolver_match.url_name == 'quote_create' %}active{% endif %}">
+                        <a href="{% url 'quote_create' %}">Create Quote</a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'quote_list' and request.GET.status == 'draft' %}active{% endif %}">
+                        <a href="{% url 'quote_list' %}?status=draft">Saved Quotes</a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'quote_list' and request.GET.status == 'completed' %}active{% endif %}">
+                        <a href="{% url 'quote_list' %}?status=completed">Completed Quotes</a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'quote_list' and request.GET.status == 'printed' %}active{% endif %}">
+                        <a href="{% url 'quote_list' %}?status=printed">Printed Quotes</a>
+                    </li>
+                </ul>
+            </li>
+            
+            <!-- Invoices Dropdown -->
+            <li class="dropdown {% if 'invoice' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="#"><i class="fas fa-file-invoice-dollar"></i> <span>Invoices</span> <i class="fas fa-chevron-down"></i></a>
+                <ul class="dropdown-menu">
+                    <li class="{% if request.resolver_match.url_name == 'invoice_create' %}active{% endif %}">
+                        <a href="{% url 'invoice_create' %}">Create Invoice</a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'invoice_list' and request.GET.status == 'draft' %}active{% endif %}">
+                        <a href="{% url 'invoice_list' %}?status=draft">Draft Invoices</a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'invoice_list' and request.GET.status == 'sent' %}active{% endif %}">
+                        <a href="{% url 'invoice_list' %}?status=sent">Sent Invoices</a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'invoice_list' and request.GET.status == 'paid' %}active{% endif %}">
+                        <a href="{% url 'invoice_list' %}?status=paid">Paid Invoices</a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'invoice_list' and request.GET.status == 'overdue' %}active{% endif %}">
+                        <a href="{% url 'invoice_list' %}?status=overdue">Overdue Invoices</a>
+                    </li>
+                </ul>
+            </li>
+            
+            <!-- Projects Dropdown -->
+            <li class="dropdown {% if 'project' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="#"><i class="fas fa-project-diagram"></i> <span>Projects</span> <i class="fas fa-chevron-down"></i></a>
+                <ul class="dropdown-menu">
+                    <li class="{% if request.resolver_match.url_name == 'project_create' %}active{% endif %}">
+                        <a href="{% url 'project_create' %}">Create Project</a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'project_list' %}active{% endif %}">
+                        <a href="{% url 'project_list' %}">Manage Projects</a>
+                    </li>
+                </ul>
+            </li>
+            
+            <!-- Employees Section -->
+            <li class="dropdown {% if 'employee' in request.resolver_match.url_name or 'department' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="#"><i class="fas fa-user-tie"></i> <span>Employees</span> <i class="fas fa-chevron-down"></i></a>
+                <ul class="dropdown-menu">
+                    <!-- Departments -->
+                    <li class="dropdown-submenu">
+                        <a href="#"><i class="fas fa-building"></i> Departments <i class="fas fa-chevron-right"></i></a>
+                        <ul class="dropdown-submenu-content">
+                            <li class="{% if request.resolver_match.url_name == 'department_create' %}active{% endif %}">
+                                <a href="{% url 'department_create' %}">Create Department</a>
+                            </li>
+                            <li class="{% if request.resolver_match.url_name == 'department_list' %}active{% endif %}">
+                                <a href="{% url 'department_list' %}">Manage Departments</a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Employees -->
+                    <li class="dropdown-submenu">
+                        <a href="#"><i class="fas fa-users"></i> Employees <i class="fas fa-chevron-right"></i></a>
+                        <ul class="dropdown-submenu-content">
+                            <li class="{% if request.resolver_match.url_name == 'employee_create' %}active{% endif %}">
+                                <a href="{% url 'employee_create' %}">Add Employee</a>
+                            </li>
+                            <li class="{% if request.resolver_match.url_name == 'employee_list' %}active{% endif %}">
+                                <a href="{% url 'employee_list' %}">Manage Employees</a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Attendance -->
+                    <li class="dropdown-submenu">
+                        <a href="#"><i class="fas fa-calendar-check"></i> Attendance <i class="fas fa-chevron-right"></i></a>
+                        <ul class="dropdown-submenu-content">
+                            <li class="{% if request.resolver_match.url_name == 'attendance_create' %}active{% endif %}">
+                                <a href="{% url 'attendance_create' %}">Record Attendance</a>
+                            </li>
+                            <li class="{% if request.resolver_match.url_name == 'attendance_list' %}active{% endif %}">
+                                <a href="{% url 'attendance_list' %}">View Attendance</a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Payroll -->
+                    <li class="dropdown-submenu">
+                        <a href="#"><i class="fas fa-money-bill-wave"></i> Payroll <i class="fas fa-chevron-right"></i></a>
+                        <ul class="dropdown-submenu-content">
+                            <li class="{% if request.resolver_match.url_name == 'payroll_create' %}active{% endif %}">
+                                <a href="{% url 'payroll_create' %}">Process Payroll</a>
+                            </li>
+                            <li class="{% if request.resolver_match.url_name == 'payroll_list' %}active{% endif %}">
+                                <a href="{% url 'payroll_list' %}">Payroll History</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            
+            <!-- Payments Received -->
+            <li class="{% if 'payments' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'payments' %}"><i class="fas fa-money-check-alt"></i> <span>Payments Received</span></a>
+            </li>
+            
+            <!-- Expenses -->
+            <li class="{% if 'expenses' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'expenses' %}"><i class="fas fa-receipt"></i> <span>Expenses</span></a>
+            </li>
+            
+            <!-- Time Tracking -->
+            <li class="{% if 'time_tracking' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'time_tracking' %}"><i class="fas fa-clock"></i> <span>Time Tracking</span></a>
+            </li>
+            
+            <!-- Reports -->
+            <li class="{% if 'reports' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'reports' %}"><i class="fas fa-chart-bar"></i> <span>Reports</span></a>
+            </li>
+        </ul>
+    </div>
+    <div class="main">
+        <div class="page-header">
+            <h1>{% block page_title %}{% endblock %}</h1>
+            {% block header_actions %}{% endblock %}
+        </div>
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    <script src="{% static 'core/script.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        // JavaScript for nested dropdowns
+        document.querySelectorAll('.dropdown-submenu > a').forEach(function(element) {
+            element.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Close other open submenus
+                const otherSubmenus = document.querySelectorAll('.dropdown-submenu-content');
+                otherSubmenus.forEach(submenu => {
+                    if (submenu !== this.nextElementSibling) {
+                        submenu.style.display = 'none';
+                    }
+                });
+                
+                // Toggle current submenu
+                const submenu = this.nextElementSibling;
+                if (submenu.style.display === 'block') {
+                    submenu.style.display = 'none';
+                } else {
+                    submenu.style.display = 'block';
+                }
+            });
+        });
+
+        // Close submenus when clicking elsewhere
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropdown-submenu')) {
+                document.querySelectorAll('.dropdown-submenu-content').forEach(function(submenu) {
+                    submenu.style.display = 'none';
+                });
+            }
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,110 @@
+{% extends 'core/base.html' %}
+
+{% block page_title %}Payroll Details{% endblock %}
+
+{% block header_actions %}
+    <a href="{% url 'payroll_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Employee Information</h3>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Name</dt>
+                    <dd class="col-sm-8">{{ payroll.employee.name }}</dd>
+                    
+                    <dt class="col-sm-4">Employee ID</dt>
+                    <dd class="col-sm-8">{{ payroll.employee.employee_id }}</dd>
+                    
+                    <dt class="col-sm-4">Department</dt>
+                    <dd class="col-sm-8">{{ payroll.employee.department|default:"-" }}</dd>
+                    
+                    <dt class="col-sm-4">Employee Type</dt>
+                    <dd class="col-sm-8">{{ payroll.employee.get_employee_type_display }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Payroll Information</h3>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-5">Payroll Month</dt>
+                    <dd class="col-sm-7">{{ payroll.month|date:"F Y" }}</dd>
+                    
+                    <dt class="col-sm-5">Total Working Days</dt>
+                    <dd class="col-sm-7">{{ payroll.total_working_days }}</dd>
+                    
+                    <dt class="col-sm-5">Days Worked</dt>
+                    <dd class="col-sm-7">{{ payroll.days_worked }}</dd>
+                    
+                    <dt class="col-sm-5">Total Overtime Hours</dt>
+                    <dd class="col-sm-7">{{ payroll.total_overtime_hours }}</dd>
+                    
+                    <dt class="col-sm-5">Overtime Pay</dt>
+                    <dd class="col-sm-7">
+                        AED {{ payroll.employee.overtime_rate }} × {{ payroll.total_overtime_hours }} = 
+                        AED {{ overtime_pay }}
+                    </dd>
+                    
+                    <dt class="col-sm-5">Gross Salary</dt>
+                    <dd class="col-sm-7">AED {{ payroll.gross_salary }}</dd>
+                    
+                    <dt class="col-sm-5">Deductions</dt>
+                    <dd class="col-sm-7">AED {{ payroll.deductions }}</dd>
+                    
+                    <dt class="col-sm-5">Net Salary</dt>
+                    <dd class="col-sm-7">AED {{ payroll.net_salary }}</dd>
+                    
+                    <dt class="col-sm-5">Payment Status</dt>
+                    <dd class="col-sm-7">
+                        {% if payroll.is_paid %}
+                        <span class="badge bg-success">Paid on {{ payroll.payment_date }}</span>
+                        {% else %}
+                        <span class="badge bg-warning">Pending Payment</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Salary Breakdown</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                {% if payroll.employee.employee_type == 'permanent' %}
+                <p>Base Salary: AED {{ payroll.employee.monthly_salary }}</p>
+                {% else %}
+                <p>Base Salary: AED {{ payroll.employee.daily_wage }} × {{ payroll.days_worked }} = 
+                   AED {{ base_salary }}</p>
+                {% endif %}
+                
+                <p>Overtime Pay: AED {{ payroll.employee.overtime_rate }} × {{ payroll.total_overtime_hours }} = 
+                   AED {{ overtime_pay }}</p>
+            </div>
+            <div class="col-md-6">
+                <p>Gross Salary: AED {{ payroll.gross_salary }}</p>
+                <p>Deductions: AED {{ payroll.deductions }}</p>
+                <hr>
+                <h4>Net Salary: AED {{ payroll.net_salary }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

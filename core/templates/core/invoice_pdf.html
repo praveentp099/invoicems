@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Invoice #{{ invoice.invoice_number }}</title>
+    <style>
+        body { font-family: Helvetica; margin: 0; padding: 20px; font-size: 12px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .company-info { margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .text-right { text-align: right; }
+        .totals { margin-top: 20px; float: right; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Unique Force General Contracting LLC</h2>
+        <p>Abu Dhabi, UAE | TIN: 100271181280003</p>
+        <p>050477101 | uf.orggc@gmail.com</p>
+    </div>
+    
+    <div class="invoice-info">
+        <table>
+            <tr>
+                <td width="50%">
+                    <strong>Bill To:</strong><br>
+                    {{ invoice.customer.display_name }}<br>
+                    {{ invoice.customer.company_name }}<br>
+                    {{ invoice.customer.address }}<br>
+                    TIN: {{ invoice.customer.tin|default:"N/A" }}
+                </td>
+                <td width="50%">
+                    <strong>Invoice #:</strong> {{ invoice.invoice_number }}<br>
+                    <strong>Date:</strong> {{ invoice.invoice_date|date:"M d, Y" }}<br>
+                    <strong>Due Date:</strong> {{ invoice.due_date|date:"M d, Y" }}<br>
+                    <strong>Status:</strong> {{ invoice.get_status_display }}
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Tax</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.description }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>AED {{ item.unit_price|floatformat:2 }}</td>
+                <td>{{ item.tax|floatformat:2 }}%</td>
+                <td>AED {{ item.total_price|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4" class="text-right"><strong>Total:</strong></td>
+                <td><strong>AED {{ invoice.total_amount|floatformat:2 }}</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+    
+    {% if invoice.notes %}
+    <div class="notes">
+        <strong>Notes:</strong>
+        <p>{{ invoice.notes }}</p>
+    </div>
+    {% endif %}
+    
+    {% if invoice.terms %}
+    <div class="terms">
+        <strong>Terms:</strong>
+        <p>{{ invoice.terms }}</p>
+    </div>
+    {% endif %}
+    
+    <div style="margin-top: 50px;">
+        <div style="width: 300px; border-top: 1px solid #000; padding-top: 10px;">
+            <p>Authorized Signature</p>
+            <p>Name: _________________________</p>
+            <p>Date: _________________________</p>
+        </div>
+    </div>
+</body>
+</html>

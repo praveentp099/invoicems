@@ -1,0 +1,110 @@
+{% extends 'core/base.html' %}
+
+{% block page_title %}Process Payroll{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_employee" class="form-label">Employee</label>
+                        {{ form.employee }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_month" class="form-label">Payroll Month</label>
+                        {{ form.month }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="id_total_working_days" class="form-label">Total Working Days</label>
+                        {{ form.total_working_days }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="id_days_worked" class="form-label">Days Worked</label>
+                        {{ form.days_worked }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="id_total_overtime_hours" class="form-label">Overtime Hours</label>
+                        {{ form.total_overtime_hours }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="id_gross_salary" class="form-label">Gross Salary (AED)</label>
+                        {{ form.gross_salary }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="id_deductions" class="form-label">Deductions (AED)</label>
+                        {{ form.deductions }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="id_net_salary" class="form-label">Net Salary (AED)</label>
+                        {{ form.net_salary }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_payment_date" class="form-label">Payment Date</label>
+                        {{ form.payment_date }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check form-switch mt-4 pt-2">
+                        {{ form.is_paid }}
+                        <label class="form-check-label" for="id_is_paid">Mark as Paid</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Save
+                </button>
+                <a href="{% url 'payroll_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize date pickers
+        flatpickr('#id_month', {
+            dateFormat: "Y-m-d",
+            defaultDate: "{{ form.month.value|default:'' }}",
+            allowInput: true
+        });
+        
+        flatpickr('#id_payment_date', {
+            dateFormat: "Y-m-d",
+            defaultDate: "{{ form.payment_date.value|default:'' }}",
+            allowInput: true
+        });
+    });
+</script>
+{% endblock %}
